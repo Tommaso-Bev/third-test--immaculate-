@@ -1,0 +1,45 @@
+{% extends 'users/profile.html' %}
+{% load static %}
+
+
+
+{% block content1 %}   
+<div class="container">
+</div>
+<h3>Favorite Recipes</h3>
+{% if user.favorite_recipes.exists %}
+<section class="best-receipe-area">
+  <div class="container">
+      <div class="row">
+    {% for favorite in user.favorite_recipes.all %}
+        <!-- Single Best Receipe Area -->
+              <div class="col-12 col-sm-6 col-lg-4">
+                <div class="single-best-receipe-area mb-30">
+                    <img src="{{ favorite.recipe.img.url }}" class="img-thumbnail" alt="">
+                    <div class="receipe-content">
+                        <a href="{% url 'recipes-detail' favorite.recipe.pk %} " class="link-unstyled">
+                            <h5>{{ favorite.recipe.title}}</h5>
+                        </a>
+
+                        <h6>By {{ favorite.recipe.author}} </h6>  
+                      
+                        <div class="average-rating">
+                          {% if favorite.recipe.ratings.exists %}
+                            {{ favorite.recipe.average_rating }} <i class="fa-solid fa-star fa-bounce" style="color: #f3f708;"></i>
+                          {% else %}
+                            No ratings yet.
+                          {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>      
+    {% endfor %}
+  </div>
+</div>        
+</section>
+{% else %}
+<p>No favorite recipes yet.</p>
+{% endif %}
+
+{% endblock content1 %}

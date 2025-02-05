@@ -1,0 +1,82 @@
+{% extends 'recipes/base.html' %}
+{% load static %}
+
+{% block content %}   
+<h1>Welcome to your Profile, {{ user.username }}</h1>
+<nav class="navbar navbar-expand-lg navbar-light bg-success rounded-3" style="margin-bottom: 40px;">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link nav-item-text font-weight-bold" href="{% url 'user-favorites' %}">Favorites</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link nav-item-text font-weight-bold" href="{% url 'user-recipes' %}">My Recipes</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link nav-item-text font-weight-bold" href="{% url 'user-profile' %}">Profile Information</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+
+
+
+{% block content1 %} 
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-4">
+      <img class="rounded-circle shadow-1-strong me-3" src="{% static 'img\user.jpg' %}" alt="avatar" width="200" height="200" />
+      <h2>{{ user.username }}</h2>
+      <p>Email: {{ user.email }}</p>
+    </div>
+    <div class="col-md-8" >
+      
+      <p style="margin-bottom: 40px;">User Information: I am a passionate and driven individual with a love for creativity and innovation. 
+        I thrive in dynamic and collaborative environments, constantly seeking new challenges that push me to
+         grow both personally and professionally. With a background in technology and a keen eye for design,
+          I enjoy finding elegant solutions to complex problems. My strong communication skills and ability to 
+          work well in teams make me an effective collaborator and leader. Outside of work, you can often find
+           me exploring new hiking trails, experimenting with photography, or diving into a good book. 
+           I believe in the power of continuous learning and strive to expand my knowledge in various areas.
+            I am excited to connect with like-minded individuals and contribute to meaningful projects that make 
+            a positive impact on the world.</p>
+      <div class="row " >
+        <div class="col-md-6">
+          <h3>Followers: {{ user.get_followers_count }}</h3>
+          <ul>
+            {% for follower in user.followers.all %}
+              <li>{{ follower.username }}</li>
+            {% empty %}
+              <li>No followers</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <h3>Following: {{ user.get_following_count }}</h3>
+          <ul>
+            {% for following in user.following.all %}
+              <li>{{ following.username }}</li>
+            {% empty %}
+              <li>Not following anyone</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+{% endblock content1%}
+
+{% endblock content%}

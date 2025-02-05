@@ -1,0 +1,406 @@
+{% extends 'recipes/base.html' %}
+{% load crispy_forms_filters %}
+
+{% block content %}
+<div class="container">
+    <form class="form-add" method="POST" enctype="multipart/form-data" action="{% url 'recipes-create' %}">
+        {% csrf_token %}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Add Recipe</legend>
+            
+            <!-- Title field -->
+            <div class="form-group mb-4">
+                <label for="id_title">Title*</label>
+                <input type="text" name="title" id="id_title" class="form-control" required>
+            </div>
+            
+            <!-- Image field -->
+            <div class="form-group mb-4">
+                <label for="id_img">Image*</label>
+                <input type="file" id="id_img" class="form-control" accept="image/*">
+                <img id="previewImage" style="max-width: 100%; display: none;">
+                <button type="button" id="cropButton" style="display: none; margin-top: 10px; padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">Crop Image</button>
+                <input type="hidden" name="cropped_image" id="croppedImageData">
+                <p id="cropMessage" style="color: green; display: none;">Image successfully cropped!</p>
+            </div>
+
+
+            
+    
+
+            <!-- Description field -->
+            <div class="form-group mb-4">
+                <label for="id_description">Description*</label>
+                <textarea name="description" id="id_description" class="form-control" rows="4" required></textarea>
+            </div>
+
+            <!-- Custom Categories layout -->
+            <div class="form-group">
+                <label for="id_categories">Categories*</label>
+                <div class="row">
+                    {% for category in form.categories.field.choices %}
+                    <div class="col-md-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="categories" value="{{ category.0 }}" id="category-{{ category.0 }}"
+                            {% if category.0 in form.categories.value %}checked{% endif %}>
+                            <label class="form-check-label" for="category-{{ category.0 }}">
+                                {{ category.1 }}
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Renderizza gli altri campi -->
+            <div class="form-group">
+                {{ form.description|crispy }}
+            </div>
+            <div class="form-group">
+                {{ form.ingredients|crispy }}
+            </div>
+            <div class="form-group">
+                {{ form.steps|crispy }}
+            </div>
+        </fieldset>
+
+        <!-- Servings field -->
+        <div class="form-group">
+            <label for="id_servings">Servings*</label>
+            <input type="number" class="form-control" id="id_servings" name="servings" value="{{ form.servings.value|default:'' }}" required style="width: 80px;">
+        </div>
+        
+        
+
+        <!-- Ingredients section -->
+        <label class="mt-4" for="id_steps">Ingredients*</label>
+        <div>
+            <div id="ingredients-container"></div>
+            <button type="button" id="add-ingredient" class="btn btn-outline-primary mt-2" >Add Ingredient</button> 
+        </div>
+        
+
+        <!-- Description steps section -->
+         
+        <label class="mt-4" for="id_steps">Steps*</label>
+        <div>
+            <div id="steps-container" ></div>
+            <button type="button" id="add-step" class="btn btn-outline-primary mt-2">Add Step</button> 
+        </div>
+        
+
+        <div class="form-group py-3 text-center">
+            <input class="btn btn-outline-success" type="button" value="Save" id="openConfirmModal">
+        </div>
+    </form>
+
+    <div class="border-top pt-3">
+        <a href="{% url 'recipes-home' %}">Cancel</a>
+    </div>
+</div>
+
+<!-- Modal of confirm -->
+<div class="modal fade" id="confirmSaveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <p>Are you sure you want to save this recipe?</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <input type="submit" class="btn btn-success" value="Confirm" id="confirmSaveButton">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const addIngredientBtn = document.getElementById("add-ingredient");
+        const addStepBtn = document.getElementById("add-step");
+        const ingredientsContainer = document.getElementById("ingredients-container");
+        const stepsContainer = document.getElementById("steps-container");
+        const saveBtn = document.getElementById("openConfirmModal");
+        const titleInput = document.getElementById("id_title");
+        const descriptionInput = document.getElementById("id_description");
+        const categoriesInput = document.querySelectorAll('input[name="categories"]');
+        const servingsInput = document.getElementById("id_servings");
+
+        let isImageCropped=false
+        
+        //Event listener for title description and categories
+        titleInput.addEventListener("input", validateInputs);
+        descriptionInput.addEventListener("input", validateInputs);
+        servingsInput.addEventListener("input", validateInputs);
+        categoriesInput.forEach(input => {
+            input.addEventListener("change", validateInputs);
+        });    
+
+        // Update remove buttons
+        function updateRemoveButtons() {
+            const removeIngredientButtons = document.querySelectorAll(".remove-ingredient");
+            const removeStepButtons = document.querySelectorAll(".remove-step");
+
+            removeIngredientButtons.forEach(button => {
+                button.disabled = removeIngredientButtons.length === 1; // Disabilita se c'è solo una riga di ingredienti
+            });
+
+            removeStepButtons.forEach(button => {
+                button.disabled = removeStepButtons.length === 1; // Disabilita se c'è solo una riga di step
+            });
+        }
+
+        // Validate inputs
+        function validateInputs() {
+            let allIngredientsValid = true;
+            let allStepsValid = true;
+            let isTitleValid = titleInput.value.trim() !== "";
+            let isDescriptionValid = descriptionInput.value.trim() !== "";
+            let isServingsValid = servingsInput.value.trim() !== "";
+            let areCategoriesValid = Array.from(document.querySelectorAll('input[name="categories"]:checked')).length > 0;
+
+            // Validate ingredients
+            const ingredientRows = document.querySelectorAll(".ingredient-row");
+            ingredientRows.forEach(row => {
+                const inputs = row.querySelectorAll("input");
+                const name = inputs[0].value.trim();
+                const quantity = inputs[1].value.trim();
+                const unit = inputs[2].value.trim();
+
+                if (name === "" || quantity === "" || unit === "") {
+                    allIngredientsValid = false;
+                }
+            });
+
+            // Validate steps
+            const stepRows = document.querySelectorAll(".step-row");
+            stepRows.forEach(row => {
+                const inputs = row.querySelectorAll("textarea");
+                const description = inputs[0].value.trim();
+
+                if (description === "") {
+                    allStepsValid = false;
+                }
+            });
+
+            // Disabilita il pulsante "Add Ingredient" se i campi degli ingredienti non sono compilati
+            addIngredientBtn.disabled = !allIngredientsValid;
+            // Disabilita il pulsante "Add Step" se la descrizione di uno step non è compilata
+            addStepBtn.disabled = stepRows.length === 0 || !stepRows[stepRows.length - 1].querySelector("textarea").value.trim();
+
+            // Disabilita il pulsante "Save" se ci sono errori in ingredienti, step, title, img, description, o categories
+            saveBtn.disabled = !(isTitleValid && isDescriptionValid && areCategoriesValid && allIngredientsValid && allStepsValid && isImageCropped && isServingsValid);
+
+            updateRemoveButtons();
+        }
+        
+    
+
+        
+
+        // Aggiungi ingrediente solo se non ci sono già ingredienti (o se l'ultima riga è vuota)
+        function addIngredientRow() {
+            const newRow = document.createElement("div");
+            newRow.classList.add("ingredient-row", "row", "align-items-center");
+            newRow.innerHTML = `
+                <div class="col-md-3">
+                    <input type="text" name="ingredient[]" class="form-control" placeholder="Ingredient" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="number" name="quantity[]" class="form-control" placeholder="Quantity" required>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="unit[]" class="form-control" placeholder="Unit of Measure" required>
+                </div>
+                <div class="col-md-3 text-end">
+                    <button type="button" class="btn btn-danger remove-ingredient">Remove</button>
+                </div>
+            `;
+            ingredientsContainer.appendChild(newRow);
+
+            newRow.querySelector(".remove-ingredient").addEventListener("click", function() {
+                ingredientsContainer.removeChild(newRow);
+                validateInputs();
+            });
+
+            newRow.querySelectorAll("input").forEach(input => {
+                input.addEventListener("input", validateInputs);
+            });
+
+            validateInputs();
+        }
+
+        let stepCounter = 0; // Contatore per identificare gli step univocamente
+
+        function addStepRow() {
+            stepCounter++; // Incrementa il contatore per assegnare un ID univoco
+            const newRow = document.createElement("div");
+            newRow.classList.add("step-row", "row", "align-items-center");
+            newRow.setAttribute("data-step-id", stepCounter); // Assegna un ID univoco alla riga
+
+            newRow.innerHTML = `
+                <div class="col-md-6">
+                    <textarea name="step_description[${stepCounter}]" class="form-control step-description" placeholder="Step description" rows="3" required></textarea>
+                </div>
+                <div class="col-md-4">
+                    <input type="file" name="step_image[${stepCounter}]" class="form-control" accept="image/*">
+                </div>
+                <div class="col-md-2 text-end">
+                    <button type="button" class="btn btn-danger remove-step">Remove</button>
+                </div>
+            `;
+
+            stepsContainer.appendChild(newRow);
+
+            // Make the textarea dynamically resize based on content
+            const textarea = newRow.querySelector("textarea");
+            textarea.addEventListener("input", () => {
+                textarea.style.height = "auto";  // Reset the height
+                textarea.style.height = `${textarea.scrollHeight}px`; // Adjust the height based on content
+            });
+
+            newRow.querySelector(".remove-step").addEventListener("click", function() {
+                stepsContainer.removeChild(newRow);
+                validateInputs();
+            });
+
+            newRow.querySelectorAll("textarea").forEach(input => {
+                input.addEventListener("input", validateInputs);
+            });
+
+            validateInputs();
+        }
+        
+        addIngredientBtn.addEventListener("click", addIngredientRow);
+        addStepBtn.addEventListener("click", addStepRow);
+
+
+        // Inizializza controllo su input già presenti
+        document.querySelectorAll(".ingredient-row input").forEach(input => {
+            input.addEventListener("input", function() {
+                validateInputs();
+            });
+        });
+
+        document.querySelectorAll(".step-row input").forEach(input => {
+            input.addEventListener("input", function() {
+                validateInputs();
+            });
+        });
+        
+        addStepBtn.click();
+        addIngredientBtn.click();
+
+        function cropping_the_shit_out_of_images(){
+            console.log("JavaScript loaded!"); // Debugging line
+
+            let imageInput = document.getElementById("id_img");
+            let previewImage = document.getElementById("previewImage");
+            let cropButton = document.getElementById("cropButton");
+            let croppedImageData = document.getElementById("croppedImageData");
+            let cropper
+
+
+            if (!imageInput || !previewImage || !cropButton || !croppedImageData) {
+                console.error("One or more elements not found! Check your HTML IDs.");
+                return;
+            }
+
+            imageInput.addEventListener("change", function (event) {
+                let file = event.target.files[0];
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewImage.src = e.target.result;
+                        previewImage.style.display = "block";  // Show image
+                        cropButton.style.display = "block";    // Show crop button
+                        console.log("Image loaded!"); // Debugging line
+                        isImageCropped=false;
+                        validateInputs();
+                        // Destroy previous Cropper instance if it exists
+                        if (cropper) {
+                            cropper.destroy();
+                        }
+
+                        // Initialize Cropper.js
+                        cropper = new Cropper(previewImage, {
+                            aspectRatio: 4 / 4, // Set your desired aspect ratio (4:3 for rectangle)
+                            viewMode: 1,       // Ensure the crop box stays within the image
+                            dragMode: "move",  // Allow moving the image
+                            cropBoxResizable: false, // Disable resizing of the crop box
+                            cropBoxMovable: true, // Allow moving the crop box
+                            autoCropArea: 1,   // Set the crop box to take full image by default
+                        });
+
+
+                        console.log("Cropper initialized!", cropper); // Debugging line
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            cropButton.addEventListener("click", function () {
+                if (cropper) {
+                    let croppedCanvas = cropper.getCroppedCanvas();
+                    let croppedImage = croppedCanvas.toDataURL("image/png");
+                    croppedImageData.value = croppedImage;
+                    console.log("Image cropped!"); // Debugging line
+                    isImageCropped=true;
+                    validateInputs();
+                } else {
+                    console.error("Cropper is not initialized yet!");
+                }
+            });
+
+            // Add event listeners to show/hide the crop message
+            let cropMessage = document.getElementById("cropMessage");
+
+            imageInput.addEventListener("change", function() {
+                cropMessage.style.display = "none"; // Hide message when a new image is added
+            });
+
+            previewImage.addEventListener("crop", function() {
+                cropMessage.style.display = "none"; // Hide message when the image changes
+            });
+
+            cropButton.addEventListener("click", function() {
+                cropMessage.style.display = "block"; // Show message when cropping is done
+            });
+
+
+        };
+
+    cropping_the_shit_out_of_images();
+    validateInputs();
+
+
+
+
+    
+    let saveButton = document.getElementById("openConfirmModal");
+    let confirmButton = document.getElementById("confirmSaveButton");
+    let modal = new bootstrap.Modal(document.getElementById("confirmSaveModal"));
+    let form = document.querySelector(".form-add");
+
+    saveButton.addEventListener("click", function () {
+        modal.show();
+    });
+
+    confirmButton.addEventListener("click", function () {
+        modal.hide();
+        form.submit();
+    });
+    
+
+    
+    
+});
+
+
+
+
+
+
+    
+</script>
+{% endblock %}

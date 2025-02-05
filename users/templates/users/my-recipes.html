@@ -1,0 +1,46 @@
+{% extends 'users/profile.html' %}
+{% load static %}
+
+{% block content1 %}
+    <h2>My Recipes</h2>
+    {% if recipes %}
+    <section class="best-receipe-area">
+        <div class="container">
+            <div class="row">
+            {% for recipe in recipes %}
+                    <!-- Single Best Receipe Area -->
+              <div class="col-12 col-sm-6 col-lg-4">
+                <div class="single-best-receipe-area mb-30">
+                      {% if recipe.img %}
+                        <img src="{{ recipe.img.url }}" class="img-thumbnail" alt="">
+                      {% else %}
+                        <img src="/media/images/no_image_available.png" class="img-thumbnail" alt="">
+                      {% endif %}
+                    <div class="receipe-content">
+                        <a href="{% url 'recipes-detail' recipe.pk %} " class="link-unstyled">
+                            <h5>{{ recipe.title}}</h5>
+                        </a>
+
+                        <h6>By {{ recipe.author}} </h6>  
+                      
+                        <div class="average-rating">
+                          {% if recipe.ratings.exists %}
+                            {{ recipe.average_rating }} <i class="fa-solid fa-star fa-bounce" style="color: #f3f708;"></i>
+                          {% else %}
+                            No ratings yet.
+                          {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+            </div>      
+    {% endfor%}
+</div>
+</div>        
+</section>
+    {% else %}
+        <p>No recipes found.</p>
+    {% endif %}
+{% endblock content1 %}
+
+

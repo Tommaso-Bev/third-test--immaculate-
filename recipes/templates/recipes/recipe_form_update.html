@@ -1,0 +1,71 @@
+{% extends 'recipes/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2>Editing Recipe: {{ recipe.title }}</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <!-- Ingredients Section -->
+        <h4>Ingredients</h4>
+        <ul id="ingredients-list">
+            {% for ingredient in ingredient_list %}
+                <li>
+                    <input type="text" name="ingredient[]" value="{{ ingredient.0 }}" placeholder="Ingredient">
+                    <input type="text" name="quantity[]" value="{{ ingredient.1 }}" placeholder="Quantity">
+                    <input type="text" name="unit[]" value="{{ ingredient.2 }}" placeholder="Unit">
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="button" onclick="addIngredient()">Add Ingredient</button>
+
+        <!-- Steps Section -->
+        <h4>Steps</h4>
+        <ol id="steps-list">
+            {% for step in step_list %}
+                <li>
+                    <input type="text" name="step_description[]" value="{{ step.0 }}" placeholder="Step description">
+                    {% if step.1 != "No Image" %}
+                        <br>
+                        <img src="{{ step.1 }}" alt="Step Image" width="200">
+                        <input type="file" name="step_image[]" accept="image/*">
+                    {% else %}
+                        <input type="file" name="step_image[]" accept="image/*">
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+        <button type="button" onclick="addStep()">Add Step</button>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+
+</div>
+
+<script>
+// JavaScript to dynamically add ingredients and steps
+function addIngredient() {
+    let ingredientsList = document.getElementById('ingredients-list');
+    let newIngredient = document.createElement('li');
+    newIngredient.innerHTML = `
+        <input type="text" name="ingredient[]" placeholder="Ingredient">
+        <input type="text" name="quantity[]" placeholder="Quantity">
+        <input type="text" name="unit[]" placeholder="Unit">
+    `;
+    ingredientsList.appendChild(newIngredient);
+}
+
+function addStep() {
+    let stepsList = document.getElementById('steps-list');
+    let newStep = document.createElement('li');
+    newStep.innerHTML = `
+        <input type="text" name="step_description[]" placeholder="Step description">
+        <input type="file" name="step_image[]" accept="image/*">
+    `;
+    stepsList.appendChild(newStep);
+}
+</script>
+{% endblock %}

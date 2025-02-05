@@ -1,0 +1,78 @@
+{% extends 'recipes/base.html' %}
+{% load static %}
+
+{% block SearchBar %}
+  <form class="d-flex" role="search" method="GET" action="{% url 'recipes-search' %}">
+    <input class="form-control me-2" type="search" name="query" placeholder="Search" aria-label="Search">
+    <button class="btn btn-outline-success" type="submit">Search</button>
+  </form>
+{% endblock %}
+
+{% block content %}
+
+<section class="new-entry-recipe-area">
+  
+  <div class="container col-lg-12">
+    <div class="">
+        <div class="p-3 mb-3 rounded" style="
+        background-image: url('/media/images/doodle4-1.jpg');
+        background-repeat: no-repeat; 
+        background-position: center;
+        background-size: cover;
+        width: 100%; 
+        display: block;
+        border: 2px solid #000;">
+        <h3 style="color: #e45959; font-size: 3em; -webkit-text-stroke: 1px #ffffff; font-weight:bold; font-family: cursive;">New Entries</h3>
+        </div>
+      </div>
+
+    <div class="row d-flex justify-content-center px-4">
+    {% for recipe in page_obj %}
+        <div class="col-12 col-sm-6 col-lg-4 d-flex h-100 p-3">
+            <div class="single-best-receipe-area p-3 border flex-grow-1">
+            <div class="ratio ratio-1x1"> <!-- Set fixed aspect ratio of 1:1 (square) -->
+                {% if recipe.img %}
+                <img src="{{ recipe.img.url }}" class="img-fluid object-fit-cover rounded" alt="{{ recipe.title }}">
+                {% else %}
+                <img src="/media/images/no_image_available.png" class="img-fluid object-fit-cover" alt="{{ recipe.title }}">
+                {% endif %}
+            </div>
+            <div class="receipe-content border p-1">
+                <a href="{% url 'recipes-detail' recipe.pk %}" class="link-unstyled">
+                <h5>{{ recipe.title }}</h5>
+                </a>
+                <h6>By {{ recipe.author }}</h6>
+                <div class="average-rating">
+                {% if recipe.ratings.exists %}
+                    {{ recipe.average_rating }} <i class="fa-solid fa-star fa-bounce" style="color: #f3f708;"></i>
+                {% else %}
+                    No ratings yet.
+                {% endif %}
+                </div>
+            </div>
+        
+          </div>
+        </div>
+  
+    {% endfor %}
+    </div>
+    
+    <!-- Pagination Controls -->
+    <div class="pagination">
+      <span class="page-links">
+        {% if page_obj.has_previous %}
+          <a href="?page=1">&laquo; First</a>
+          <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+        {% endif %}
+        
+        <span class="current-page">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}">Next</a>
+          <a href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+        {% endif %}
+      </span>
+    </div>
+  </div>
+</section>
+{% endblock content %}
