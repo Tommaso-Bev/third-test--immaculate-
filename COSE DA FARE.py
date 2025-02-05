@@ -15,6 +15,8 @@
 
 #TODO new entries molto bene, ma si facesse come si è detto anche un Popular/Most rated recipe?
 
+#TODO update fatto bene
+
 # T O D O di formattazione
 
 #TODO migliorare la visualizzazione in tutto il sito

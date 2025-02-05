@@ -83,33 +83,34 @@ class RecipeBaseView(LoginRequiredMixin):
         # Gestione dei passaggi
         step_descriptions = {
             int(k.strip("step_description[]")): v
-            for k, v in self.request.POST.items() if k.startswith("step_description[")
+            for k, v in self.request.POST.items() if k.startswith("step_description[")and k.strip("step_description[]") != ''
         }
 
-        # Raccogli le immagini con chiavi specifiche come step_image[3]
         step_images = {
-            int(k.strip("step_image[]")): v
-            for k, v in self.request.FILES.items() if k.startswith("step_image[")
-        }
+        int(k.strip("step_image[]")): v
+        for k, v in self.request.FILES.items() if k.startswith("step_image[")
+        }   
 
+        existing_step_images = {
+            int(k.strip("existing_step_image[]")): v
+            for k, v in self.request.POST.items() if k.startswith("existing_step_image[")
+        }
         default_image_url = os.path.join(settings.MEDIA_URL, 'images/no_image_available.png')
 
         steps = []
-        for i in sorted(step_descriptions.keys()):  # Ordina per numero di step
+        for i in sorted(step_descriptions.keys()):  # Sort by step number
             description = step_descriptions[i]
 
             if i in step_images:
                 image = step_images[i]
-                # Genera un nome unico per l'immagine
                 image_name = f"step_{i}_{image.name}"
-                # Salva l'immagine nella cartella media/recipes
                 image_path = default_storage.save(f'recipes/{image_name}', image)
-                # Ottieni il percorso relativo dell'immagine
                 image_url = os.path.join(settings.MEDIA_URL, image_path)
+            elif i in existing_step_images:
+                image_url = existing_step_images[i]  # Keep existing image if no new one is uploaded
             else:
-                image_url = default_image_url  # Immagine predefinita se non presente
+                image_url = default_image_url  # Default image if no image exists
 
-            # Aggiungi la descrizione e l'URL dell'immagine per ciascun passo
             steps.append(f"{description}|{image_url}")
 
         # Unisci tutti gli step in una stringa separata da ";"

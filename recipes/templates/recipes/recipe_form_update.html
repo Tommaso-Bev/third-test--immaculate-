@@ -6,7 +6,15 @@
 
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
+        
         {{ form.as_p }}
+
+        <!-- Servings Section -->
+        <div class="form-group">
+            <label for="id_servings">Servings</label>
+            <input type="number" class="form-control" id="id_servings" name="servings" value="{{ form.instance.servings|default:'' }}" required min="1" max="15" style="width: 80px;">
+        </div>
+
 
         <!-- Ingredients Section -->
         <h4>Ingredients</h4>
@@ -26,18 +34,18 @@
         <ol id="steps-list">
             {% for step in step_list %}
                 <li>
-                    <input type="text" name="step_description[]" value="{{ step.0 }}" placeholder="Step description">
-                    {% if step.1 != "No Image" %}
+                    <input type="text" name="step_description[{{ forloop.counter0 }}]" value="{{ step.0 }}" placeholder="Step description">
+                    {% if step.1 and step.1 != "No Image" %}
                         <br>
                         <img src="{{ step.1 }}" alt="Step Image" width="200">
-                        <input type="file" name="step_image[]" accept="image/*">
-                    {% else %}
-                        <input type="file" name="step_image[]" accept="image/*">
+                        <input type="hidden" name="existing_step_image[{{ forloop.counter0 }}]" value="{{ step.1 }}">
                     {% endif %}
+                    <input type="file" name="step_image[{{ forloop.counter0 }}]" accept="image/*">
                 </li>
             {% endfor %}
         </ol>
         <button type="button" onclick="addStep()">Add Step</button>
+
 
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -60,12 +68,15 @@ function addIngredient() {
 
 function addStep() {
     let stepsList = document.getElementById('steps-list');
+    let stepCount = stepsList.children.length;  // Get the current number of steps
     let newStep = document.createElement('li');
     newStep.innerHTML = `
-        <input type="text" name="step_description[]" placeholder="Step description">
-        <input type="file" name="step_image[]" accept="image/*">
+        <input type="text" name="step_description[${stepCount}]" placeholder="Step description">
+        <input type="file" name="step_image[${stepCount}]" accept="image/*">
     `;
     stepsList.appendChild(newStep);
 }
+
+
 </script>
 {% endblock %}
