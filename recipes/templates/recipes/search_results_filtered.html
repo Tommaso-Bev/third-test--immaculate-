@@ -1,0 +1,69 @@
+{% extends 'recipes/base.html' %}
+{% load static %}
+
+{% block SearchBar %}
+<!-- La barra di ricerca nella navbar è nascosta -->
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Search Recipes</h2>
+    <form method="GET" action="{% url 'recipes-search-filtered' %}">
+        <div class="mb-3">
+            <label for="searchQuery" class="form-label">Search by name:</label>
+            <input type="text" id="searchQuery" name="query" class="form-control" value="{{ query }}">
+        </div>
+    
+        <div class="mb-3">
+            <label class="form-label">Filter by category:</label>
+            <div class="d-flex flex-wrap">
+                {% for value, name in categories %}
+                    <div class="form-check me-3">
+                        <input type="checkbox" class="form-check-input" name="categories" value="{{ value }}"
+                            {% if value in selected_categories %}checked{% endif %}>
+                        <label class="form-check-label">{{ name }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>    
+
+    <div class="row mt-4">
+        {% for recipe in recipes %}
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <img src="{{ recipe.img.url }}" class="card-img-top" alt="{{ recipe.title }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ recipe.title }}</h5>
+                        <p class="card-text">By {{ recipe.author }}</p>
+                        <a href="{% url 'recipes-detail' recipe.pk %}" class="btn btn-success">View Recipe</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No recipes found.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+<script>
+    // Log selected checkboxes on form submit
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(event) {
+        const selectedCategories = [];
+        
+        // Get all checkboxes
+        const checkboxes = document.querySelectorAll('input[name="categories"]:checked');
+        
+        // Loop through the checkboxes and collect their values
+        checkboxes.forEach(function(checkbox) {
+            selectedCategories.push(checkbox.value);
+        });
+
+        // Log the selected categories to the console
+        console.log("Selected Categories:", selectedCategories);
+    });
+</script>

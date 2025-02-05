@@ -212,6 +212,39 @@ def search_results(request):
     return render(request, 'recipes/search_results.html', context)
 
 
+from django.db.models import Q
+
+from django.db.models import Q
+
+def filtered_search(request):
+    query = request.GET.get("query", "")
+    selected_categories = request.GET.getlist("categories")
+
+    # Initialize the base query
+    recipes = Recipe.objects.all()
+
+    # Filter by name if query is not empty
+    if query and query != "None":
+        recipes = recipes.filter(title__icontains=query)
+
+    # Filter by categories if selected
+    if selected_categories:
+        # Create a Q object to filter by categories
+        category_filter = Q()
+        for category in selected_categories:
+            category_filter &= Q(categories__icontains=category)  # Use '&' for AND condition
+
+        recipes = recipes.filter(category_filter)
+
+    return render(request, "recipes/search_results_filtered.html", {
+        "recipes": recipes,
+        "categories": Recipe.CATEGORIES,  # Pass the list of categories
+        "query": query,
+        "selected_categories": selected_categories
+    })
+
+
+
 @login_required
 def add_comment(request, recipe_id):
     recipe = get_object_or_404(Recipe, id=recipe_id)

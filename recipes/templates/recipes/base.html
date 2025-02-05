@@ -39,6 +39,9 @@
           <li class="nav-item">
             <a class="nav-link text-dark" href="{% url 'recipes-create' %}">Add Recipe</a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'recipes-search-filtered' %}">Advanced Search</a>
+         </li>
         </ul>
         {% block SearchBar %}
         {% endblock %}
