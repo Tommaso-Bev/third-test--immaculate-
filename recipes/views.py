@@ -214,8 +214,6 @@ def search_results(request):
 
 from django.db.models import Q
 
-from django.db.models import Q
-
 def filtered_search(request):
     query = request.GET.get("query", "")
     selected_categories = request.GET.getlist("categories")
