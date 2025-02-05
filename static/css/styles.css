@@ -6,17 +6,26 @@
 }
 
 body{
-  background-color: #fde9bf;
+  /* background-color: #fde9bf; */
   overflow-x: hidden;
+  background-image: url('/media/images/dudol.jpg');
+  background-repeat: repeat ;
 }
 
+
+
 .custom-navbar {
-  background-color: #c0e794 !important;
+  /* background-color: #c0e794 !important; */
+  background-color: #001b07;
   border-bottom: 1.5px solid #e45959 !important;
 }
 
 .bold{
   font-weight: bold;
+}
+
+.food_el{
+  background-color: #e45959;
 }
 
 .best-receipe-area {

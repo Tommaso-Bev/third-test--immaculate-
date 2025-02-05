@@ -23,7 +23,7 @@
 <body>
   <nav class="navbar navbar-expand-lg custom-navbar">
     <div class="container-fluid ">
-      <a class="navbar-brand text-dark bold" href="{% url 'recipes-home' %}" >Recipes App</a>
+      <a class="navbar-brand text-white bold" href="{% url 'recipes-home' %}" >Recipes App</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo02"
         aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -34,13 +34,13 @@
             <a class="nav-link" aria-current="page" href="{% url 'recipes-home' %}" style="color: #e45959;">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-dark" href="{% url 'recipes-about' %}">About</a>
+            <a class="nav-link text-white" href="{% url 'recipes-about' %}">About</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link text-dark" href="{% url 'recipes-create' %}">Add Recipe</a>
+            <a class="nav-link text-white" href="{% url 'recipes-create' %}">Add Recipe</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'recipes-search-filtered' %}">Advanced Search</a>
+            <a class="nav-link text-white" href="{% url 'recipes-search-filtered' %}">Advanced Search</a>
          </li>
         </ul>
         {% block SearchBar %}
@@ -52,19 +52,19 @@
         {% endblock %}
 
       </div>
-      <div class="navbar-nav ">
+      <div class="navbar-nav">
         {% if user.is_authenticated %}
         <form id="logout-form" method="post" action="{% url 'user-logout' %}" style="display: none;">
             {% csrf_token %}
         </form>
-        <a class="nav-item nav-link text-dark" href="#" onclick="document.getElementById('logout-form').submit();">
+        <a class="nav-item nav-link text-white" href="#" onclick="document.getElementById('logout-form').submit();">
             Logout
         </a>
 
-        <a class="nav-item nav-link text-dark bold" href="{% url 'user-profile' %}"> My profile</a>
+        <a class="nav-item nav-link text-white bold" href="{% url 'user-profile' %}"> My profile</a>
         {% else %}
-        <a class="nav-item nav-link text-dark" href="{% url 'user-login' %}">Login</a>
-        <a class="nav-item nav-link text-dark" href="{% url 'user-register' %}">Register</a>
+        <a class="nav-item nav-link text-white" href="{% url 'user-login' %}">Login</a>
+        <a class="nav-item nav-link text-white" href="{% url 'user-register' %}">Register</a>
         {% endif %}
       </div>
     </div>

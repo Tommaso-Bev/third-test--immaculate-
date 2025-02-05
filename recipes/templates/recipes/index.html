@@ -27,34 +27,22 @@
       </div>
 
     <div class="row d-flex justify-content-center px-4">
-    {% for recipe in page_obj %}
-        <div class="col-12 col-sm-6 col-lg-4 d-flex h-100 p-3">
-            <div class="single-best-receipe-area p-3 border flex-grow-1">
-            <div class="ratio ratio-1x1"> <!-- Set fixed aspect ratio of 1:1 (square) -->
-                {% if recipe.img %}
-                <img src="{{ recipe.img.url }}" class="img-fluid object-fit-cover rounded" alt="{{ recipe.title }}">
-                {% else %}
-                <img src="/media/images/no_image_available.png" class="img-fluid object-fit-cover" alt="{{ recipe.title }}">
-                {% endif %}
-            </div>
-            <div class="receipe-content border p-1">
-                <a href="{% url 'recipes-detail' recipe.pk %}" class="link-unstyled">
-                <h5>{{ recipe.title }}</h5>
-                </a>
-                <h6>By {{ recipe.author }}</h6>
-                <div class="average-rating">
-                {% if recipe.ratings.exists %}
-                    {{ recipe.average_rating }} <i class="fa-solid fa-star fa-bounce" style="color: #f3f708;"></i>
-                {% else %}
-                    No ratings yet.
-                {% endif %}
+      <div class="row mt-4">
+        {% for recipe in recipes %}
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <img src="{{ recipe.img.url }}" class="card-img-top" alt="{{ recipe.title }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ recipe.title }}</h5>
+                        <p class="card-text">By {{ recipe.author }}</p>
+                        <a href="{% url 'recipes-detail' recipe.pk %}" class="btn btn-success">View Recipe</a>
+                    </div>
                 </div>
             </div>
-        
-          </div>
-        </div>
-  
-    {% endfor %}
+        {% empty %}
+            <p>No recipes found.</p>
+        {% endfor %}
+    </div>
     </div>
     
     <!-- Pagination Controls -->
